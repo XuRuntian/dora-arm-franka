@@ -54,7 +54,7 @@ def main():
 
 
     # 事件循环
-    for vent in node:
+    for event in node:
         event_type = event["type"]
 
         if event_type == "INPUT":
@@ -80,23 +80,23 @@ def main():
                     gripper_val = joint[-1]
                     post(arm_url, "pose", {"arr": goal_eef_quat.tolist()})
                     post(arm_url, "move_gripper", {"gripper_pos": gripper_val})
-                except Excepion as e:
+                except Exception as e:
                     print(f"执行 'action_joint_ctrl' 失败: {e}")
 
         if event["id"] == "tick":
             
             arm_data = get_arm_data(arm_url)
-                combined_list = (
-                    arm_data["jointstate"]
-                    + arm_data["gripper"]
-                    + arm_data["pose"]
-                )
+            combined_list = (
+                arm_data["jointstate"]
+                + arm_data["gripper"]
+                + arm_data["pose"]
+            )
 
-                node.send_output(
-                    "jointstate",
-                    pa.array(combined_list, type=pa.float32()),
-                    {"timestamp": time.time_ns()}
-                )
+            node.send_output(
+                "jointstate",
+                pa.array(combined_list, type=pa.float32()),
+                {"timestamp": time.time_ns()}
+            )
 
         elif event["id"] == "stop":
             print("收到停止指令，停止机械臂...")
