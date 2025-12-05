@@ -66,8 +66,8 @@ def main():
                     continue
                 try:
                     joint = event["value"].to_numpy()
-                    goal_eef_quat = joint[:-1]
-                    gripper_val = joint[-1]
+                    goal_eef_quat = joint[:-1].astype(float)
+                    gripper_val = float(joint[-1])  # float
                     post(arm_url, "pose", {"arr": goal_eef_quat.tolist()})
                     post(arm_url, "move_gripper", {"gripper_pos": gripper_val})
                 except Exception as e:
@@ -83,21 +83,20 @@ def main():
                 except Exception as e:
                     print(f"执行 'action_joint_ctrl' 失败: {e}")
 
-        if event["id"] == "tick":
-            
-            arm_data = get_arm_data(arm_url)
-            combined_list = (
-                arm_data["jointstate"]
-                + arm_data["gripper"]
-                + arm_data["pose"]
-            )
+            elif event["id"] == "get_joint":
+                
+                arm_data = get_arm_data(arm_url)
+                combined_list = (
+                    arm_data["jointstate"]
+                    + arm_data["gripper"]
+                    + arm_data["pose"]
+                )
 
-            node.send_output(
-                "jointstate",
-                pa.array(combined_list, type=pa.float32()),
-                {"timestamp": time.time_ns()}
-            )
-
+                node.send_output(
+                    "jointstate",
+                    pa.array(combined_list, type=pa.float32()),
+                    {"timestamp": time.time_ns()}
+                )
         elif event["id"] == "stop":
             print("收到停止指令，停止机械臂...")
 
